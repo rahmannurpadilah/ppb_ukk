@@ -272,7 +272,6 @@ class ApiService{
     String? password,
   }) async {
     try {
-      // Ambil token via static method
       final token = await ApiService.getToken();
 
       if (token == null || token.isEmpty) {
@@ -289,22 +288,23 @@ class ApiService{
         'Authorization': 'Bearer $token',
       };
 
-      // Body sesuai Postman → form-data (bukan JSON)
+      // body JANGAN kirim password jika null
       final body = {
         'nama': nama,
         'kontak': kontak,
         'username': username,
-        'password': password,
       };
+
+      if (password != null && password.isNotEmpty) {
+        body['password'] = password;
+      }
 
       final res = await http.post(uri, headers: headers, body: body);
       final json = jsonDecode(res.body);
 
-      // ================= SUCCESS =================
       if (res.statusCode == 200) {
         final updated = Map<String, dynamic>.from(json['data']);
 
-        // Simpan user_data baru ke SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_data', jsonEncode(updated));
 
@@ -315,7 +315,6 @@ class ApiService{
         };
       }
 
-      // ================= TOKEN INVALID =================
       if (res.statusCode == 401) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('auth_token');
@@ -328,7 +327,6 @@ class ApiService{
         };
       }
 
-      // ================= ERROR LAIN =================
       return {
         'success': false,
         'message': json['message'] ?? 'Gagal memperbarui profil.',
@@ -434,9 +432,9 @@ class ApiService{
     required String deskripsi,
     required String kontakToko,
     required String alamat,
-    String? imagePath,          // ANDROID
-    Uint8List? imageBytes,      // WEB
-    String? imageFilename,      // WEB
+    String? imagePath,          
+    Uint8List? imageBytes,      
+    String? imageFilename,      
   }) async {
     try {
       final token = await ApiService.getToken();
@@ -448,7 +446,7 @@ class ApiService{
         };
       }
 
-      final uri = Uri.parse('$baseUrl/stores/update/$id'); // API update yang benar
+      final uri = Uri.parse('$baseUrl/stores/save'); // API update yang benar
 
       final request = http.MultipartRequest('POST', uri);
 

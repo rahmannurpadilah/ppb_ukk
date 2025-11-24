@@ -5,30 +5,36 @@ import 'package:apiflutter/pages/profilpage.dart';
 import 'package:flutter/material.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final int initialIndex;   // ⬅ TAMBAHAN
+
+  const MainPage({super.key, this.initialIndex = 0});
 
   @override
   State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
+  // =========================== PAGES ===========================
   final List<Widget> _pages = const [
-    HomePage(),
-    ProductPage(),
-    MyStorePage(),
-    ProfilPage(),
+    HomePage(),       // 0
+    ProductPage(),    // 1
+    MyStorePage(),    // 2
+    ProfilPage(),     // 3
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;   // ⬅ SET INDEX AWAL
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_currentIndex],
 
-      // ======================================================
-      // CUSTOM BOTTOM NAVIGATION MIRIP HOMEPAGE
-      // ======================================================
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: const BoxDecoration(
@@ -45,6 +51,7 @@ class _MainPageState extends State<MainPage> {
             ),
           ],
         ),
+
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           type: BottomNavigationBarType.fixed,
@@ -52,14 +59,11 @@ class _MainPageState extends State<MainPage> {
           elevation: 0,
           selectedItemColor: Colors.blue,
           unselectedItemColor: Colors.grey,
-
           showSelectedLabels: false,
           showUnselectedLabels: false,
 
           onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
+            setState(() => _currentIndex = index);
           },
 
           items: [
@@ -73,9 +77,7 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  // ======================================================
-  // CUSTOM ICON NAVBAR (BESAR SAAT AKTIF)
-  // ======================================================
+  // =========================== NAV BAR ICON ===========================
   BottomNavigationBarItem _navItem(IconData icon, int index) {
     bool selected = _currentIndex == index;
 

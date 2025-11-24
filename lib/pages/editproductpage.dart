@@ -1,28 +1,31 @@
 import 'dart:io';
-import 'package:apiflutter/pages/mainpage.dart';
-import 'package:apiflutter/pages/mystorepage.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
+import 'mainpage.dart';
 
-class AddProductPage extends StatefulWidget {
-  const AddProductPage({super.key});
+class EditProductPage extends StatefulWidget {
+  final Map<String, dynamic> product;
+
+  const EditProductPage({super.key, required this.product});
 
   @override
-  State<AddProductPage> createState() => _AddProductPageState();
+  State<EditProductPage> createState() => _EditProductPageState();
 }
 
-class _AddProductPageState extends State<AddProductPage> {
+class _EditProductPageState extends State<EditProductPage> {
   final _formKey = GlobalKey<FormState>();
 
   final namaCtrl = TextEditingController();
   final hargaCtrl = TextEditingController();
-  final stokCtrl = TextEditingController(text: '1');
+  final stokCtrl = TextEditingController();
   final deskCtrl = TextEditingController();
 
   String? selectedKategoriId;
-  File? imageFile;
+
+  File? imageFile; // ⭐ gambar baru
+  String? oldImageUrl; // ⭐ gambar lama
 
   bool loading = false;
   String? errorMsg;
@@ -32,7 +35,24 @@ class _AddProductPageState extends State<AddProductPage> {
   @override
   void initState() {
     super.initState();
+    _setInitialData();
     _loadCategories();
+  }
+
+  void _setInitialData() {
+    final p = widget.product;
+
+    namaCtrl.text = p["nama_produk"] ?? "";
+    hargaCtrl.text = p["harga"]?.toString() ?? "";
+    stokCtrl.text = p["stok"]?.toString() ?? "";
+    deskCtrl.text = p["deskripsi"] ?? "";
+
+    selectedKategoriId = p["id_kategori"]?.toString();
+
+    // Ambil gambar pertama jika ada
+    if (p["images"] is List && p["images"].isNotEmpty) {
+      oldImageUrl = p["images"][0]["url"];
+    }
   }
 
   Future<void> _loadCategories() async {
@@ -41,9 +61,6 @@ class _AddProductPageState extends State<AddProductPage> {
     if (res['success'] == true) {
       setState(() {
         categories = List<Map<String, dynamic>>.from(res['data']);
-        if (categories.isNotEmpty) {
-          selectedKategoriId = categories.first['id_kategori'].toString();
-        }
       });
     }
   }
@@ -58,7 +75,7 @@ class _AddProductPageState extends State<AddProductPage> {
 
     final picked = await ImagePicker().pickImage(
       source: ImageSource.gallery,
-      imageQuality: 80,
+      imageQuality: 85,
     );
 
     if (picked == null) return;
@@ -74,54 +91,49 @@ class _AddProductPageState extends State<AddProductPage> {
       errorMsg = null;
     });
 
+    final p = widget.product;
+
     try {
       final api = ApiService();
 
-      final res = await api.createProduct(
+      final res = await api.updateProduct(
+        idProduk: p["id_produk"],
         idKategori: int.parse(selectedKategoriId!),
         namaProduk: namaCtrl.text.trim(),
-        harga: hargaCtrl.text.trim(),
-        stok: stokCtrl.text.trim(),
+        harga: int.parse(hargaCtrl.text.trim()),
+        stok: int.parse(stokCtrl.text.trim()),
         deskripsi: deskCtrl.text.trim(),
       );
 
-      if (res['success'] != true) {
-        // tetap tampilkan error tetapi tetap pindah halaman
-        errorMsg = res['message'];
+      if (res["success"] != true) {
+        errorMsg = res["message"];
       } else {
-        final data = res['data'];
-        final int? productId = data?['id_produk'] ?? data?['id'];
-
-        if (productId != null && imageFile != null) {
+        // jika user pilih gambar baru
+        if (imageFile != null) {
           await api.uploadProductImage(
-            idProduk: productId,
+            idProduk: p["id_produk"],
             imageFile: imageFile!,
           );
         }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Produk berhasil ditambahkan")),
+            const SnackBar(content: Text("Perubahan disimpan")),
           );
         }
       }
-
     } finally {
       if (!mounted) return;
 
-      // ================================
-      // SELALU PINDAH KE MyStorePage
-      // ================================
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const MainPage(initialIndex: 2)),
         (route) => false,
       );
 
-      setState(() => loading = false);
+      loading = false;
     }
   }
-
 
   Widget buildInput({
     required String label,
@@ -162,15 +174,28 @@ class _AddProductPageState extends State<AddProductPage> {
               fit: BoxFit.cover,
             ),
           )
-        : Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.image_outlined, size: 50, color: Colors.grey[400]),
-              const SizedBox(height: 12),
-              Text("Tap untuk upload gambar",
-                  style: TextStyle(color: Colors.grey[600])),
-            ],
-          );
+        : oldImageUrl != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  oldImageUrl!,
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.image_outlined,
+                      size: 50, color: Colors.grey[400]),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Tap untuk upload gambar",
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              );
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -179,10 +204,11 @@ class _AddProductPageState extends State<AddProductPage> {
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Color(0xFF2D3748)),
         title: const Text(
-          "Tambah Produk",
+          "Edit Produk",
           style: TextStyle(color: Color(0xFF2D3748)),
         ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Card(
@@ -191,11 +217,14 @@ class _AddProductPageState extends State<AddProductPage> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Padding(
             padding: const EdgeInsets.all(24),
+
             child: Form(
               key: _formKey,
+
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ================= TITLE =================
                   Center(
                     child: Column(
                       children: [
@@ -206,14 +235,14 @@ class _AddProductPageState extends State<AddProductPage> {
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.add_box,
+                            Icons.edit,
                             size: 48,
                             color: Color(0xFF667eea),
                           ),
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          "Tambah Produk Baru",
+                          "Edit Produk",
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -221,7 +250,7 @@ class _AddProductPageState extends State<AddProductPage> {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text("Lengkapi informasi produk Anda",
+                        Text("Perbarui informasi produk",
                             style: TextStyle(color: Colors.grey[600])),
                       ],
                     ),
@@ -237,35 +266,43 @@ class _AddProductPageState extends State<AddProductPage> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.red[200]!),
                       ),
-                      child: Text(errorMsg!,
-                          style: TextStyle(color: Colors.red[700])),
+                      child: Text(
+                        errorMsg!,
+                        style: TextStyle(color: Colors.red[700]),
+                      ),
                     ),
 
                   const SizedBox(height: 16),
 
+                  // ================= INPUT =================
                   buildInput(
-                      label: "Nama Produk",
-                      icon: Icons.shopping_bag_outlined,
-                      controller: namaCtrl),
+                    label: "Nama Produk",
+                    icon: Icons.shopping_bag_outlined,
+                    controller: namaCtrl,
+                  ),
 
                   buildInput(
-                      label: "Harga",
-                      icon: Icons.payments_outlined,
-                      controller: hargaCtrl,
-                      type: TextInputType.number),
+                    label: "Harga",
+                    icon: Icons.payments_outlined,
+                    controller: hargaCtrl,
+                    type: TextInputType.number,
+                  ),
 
                   buildInput(
-                      label: "Stok",
-                      icon: Icons.numbers,
-                      controller: stokCtrl,
-                      type: TextInputType.number),
+                    label: "Stok",
+                    icon: Icons.numbers,
+                    controller: stokCtrl,
+                    type: TextInputType.number,
+                  ),
 
                   buildInput(
-                      label: "Deskripsi",
-                      icon: Icons.description_outlined,
-                      controller: deskCtrl,
-                      maxLines: 3),
+                    label: "Deskripsi",
+                    icon: Icons.description_outlined,
+                    controller: deskCtrl,
+                    maxLines: 3,
+                  ),
 
+                  // ================= KATEGORI =================
                   DropdownButtonFormField<String>(
                     value: selectedKategoriId,
                     decoration: InputDecoration(
@@ -282,13 +319,14 @@ class _AddProductPageState extends State<AddProductPage> {
                         child: Text(c['nama_kategori']),
                       );
                     }).toList(),
-                    onChanged: (v) => setState(() => selectedKategoriId = v),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? "Pilih kategori" : null,
+                    onChanged: (v) {
+                      setState(() => selectedKategoriId = v);
+                    },
                   ),
 
                   const SizedBox(height: 16),
 
+                  // ================= UPLOAD GAMBAR =================
                   GestureDetector(
                     onTap: pickImage,
                     child: Container(
@@ -296,8 +334,7 @@ class _AddProductPageState extends State<AddProductPage> {
                       decoration: BoxDecoration(
                         color: Colors.grey[50],
                         borderRadius: BorderRadius.circular(12),
-                        border:
-                            Border.all(color: Colors.grey.shade300, width: 1),
+                        border: Border.all(color: Colors.grey.shade300),
                       ),
                       child: preview,
                     ),
@@ -305,6 +342,7 @@ class _AddProductPageState extends State<AddProductPage> {
 
                   const SizedBox(height: 24),
 
+                  // ================= SUBMIT =================
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -313,19 +351,20 @@ class _AddProductPageState extends State<AddProductPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF667eea),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       child: loading
                           ? const CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2)
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            )
                           : const Text(
-                              "Tambah Produk",
+                              "Simpan Perubahan",
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),

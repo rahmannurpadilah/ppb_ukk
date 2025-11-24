@@ -390,75 +390,147 @@ class _ProductPageState extends State<ProductPage> {
                                 },
 
 
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.1),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      )
-                                    ],
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                                        child: img != null
-                                            ? Image.network(
-                                                img,
-                                                height: 140,
-                                                width: double.infinity,
-                                                fit: BoxFit.cover,
-                                              )
-                                            : Container(
-                                                height: 140,
-                                                width: double.infinity,
-                                                color: Colors.grey[200],
-                                                child: const Icon(Icons.image, size: 50),
-                                              ),
-                                      ),
-
-                                      Padding(
-                                        padding: const EdgeInsets.all(12),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.08),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // ======================== IMAGE ========================
+                                        Stack(
                                           children: [
-                                            Text(
-                                              p["nama_produk"] ?? "-",
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                                color: Color(0xFF2D3748),
-                                              ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
+                                            ClipRRect(
+                                              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                              child: img != null
+                                                  ? Image.network(
+                                                      img,
+                                                      width: double.infinity,
+                                                      height: 140,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : Container(
+                                                      height: 140,
+                                                      width: double.infinity,
+                                                      color: Colors.grey[100],
+                                                      child: Icon(Icons.image_not_supported,
+                                                          size: 40, color: Colors.grey[400]),
+                                                    ),
                                             ),
-                                            const SizedBox(height: 6),
-                                            Text(
-                                              "Rp ${p["harga"]}",
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF667eea),
+
+                                            // =================== STOK BADGE ======================
+                                            Positioned(
+                                              top: 8,
+                                              right: 8,
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: int.parse(p["stok"].toString()) > 0
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Text(
+                                                  "Stok: ${p["stok"] ?? "-"}",
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              p["nama_toko"] ?? "Toko tidak ada",
-                                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
                                         ),
-                                      ),
-                                    ],
+
+                                        // ======================== CONTENT ========================
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                // NAMA PRODUK
+                                                Text(
+                                                  p["nama_produk"] ?? "Produk",
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: Color(0xFF2D3748),
+                                                    height: 1.3,
+                                                  ),
+                                                ),
+
+                                                const SizedBox(height: 6),
+
+                                                // TAG KATEGORI
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFF667eea).withOpacity(0.1),
+                                                    borderRadius: BorderRadius.circular(6),
+                                                  ),
+                                                  child: Text(
+                                                    p["nama_kategori"] ?? "-",
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                      color: Color(0xFF667eea),
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+
+                                                const Spacer(),
+
+                                                // HARGA
+                                                Text(
+                                                  "Rp ${p["harga"]}",
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF667eea),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+
+                                                const SizedBox(height: 6),
+
+                                                // TOKO
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.store, size: 12, color: Colors.grey[500]),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Text(
+                                                        p["toko"]?["nama"]?.toString() ??
+                                                            p["nama_toko"] ??
+                                                            "Tidak ada toko",
+                                                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
+
                               );
                             },
                           ),

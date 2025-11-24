@@ -1,60 +1,53 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:apiflutter/services/api_service.dart';
+import 'package:apiflutter/pages/editproductpage.dart';
+import 'package:apiflutter/pages/detailproductpage.dart';
 
-class StoreDetailPage extends StatefulWidget {
+class StoreDetailPage extends StatelessWidget {
   final Map<String, dynamic> toko;
   final List<Map<String, dynamic>> produk;
+
+  final VoidCallback? onRefresh;   // ⭐ callback agar MyStorePage bisa refresh
 
   const StoreDetailPage(
     this.toko,
     this.produk, {
+    this.onRefresh,
     super.key,
   });
 
   @override
-  State<StoreDetailPage> createState() => _StoreDetailPageState();
-}
-
-class _StoreDetailPageState extends State<StoreDetailPage> {
-  @override
   Widget build(BuildContext context) {
-    final toko = widget.toko;
-    final products = widget.produk;
-
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF7FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF2D3748)),
         title: Text(
           toko["nama_toko"] ?? "Toko Saya",
           style: const TextStyle(
-            color: Color(0xFF2D3748),
             fontWeight: FontWeight.bold,
+            color: Color(0xFF2D3748),
           ),
         ),
       ),
 
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // CARD INFO TOKO
+            // =================== INFO TOKO ====================
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                    )
                   ],
                 ),
                 child: Column(
@@ -68,161 +61,226 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                         color: Color(0xFF2D3748),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
-                      toko["deskripsi"] ?? "-",
+                      toko["deskripsi"] ?? "Tidak ada deskripsi",
                       style: TextStyle(
-                        fontSize: 14,
                         color: Colors.grey[700],
+                        height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
-                        const Icon(Icons.call, size: 16, color: Color(0xFF667eea)),
-                        const SizedBox(width: 6),
-                        Text(
-                          toko["kontak"] ?? "-",
-                          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                        ),
+                        const Icon(Icons.phone, color: Color(0xFF667eea)),
+                        const SizedBox(width: 8),
+                        Text(toko["kontak_toko"] ?? "-"),
                       ],
-                    ),
+                    )
                   ],
                 ),
               ),
             ),
 
+            // =================== LIST PRODUK ====================
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Produk Saya",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3748),
-                    ),
+              padding: const EdgeInsets.all(16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Produk Saya",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3748),
                   ),
-                  Text(
-                    "${products.length} produk",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
 
-            const SizedBox(height: 16),
-
-            products.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: Column(
-                        children: [
-                          Icon(Icons.inventory_2_outlined,
-                              size: 80, color: Colors.grey[300]),
-                          const SizedBox(height: 16),
-                          Text(
-                            "Belum ada produk",
-                            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
+            produk.isEmpty
+                ? const Padding(
+                    padding: EdgeInsets.all(40),
+                    child: Text(
+                      "Belum ada produk",
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   )
-                : Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: products.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.68,
-                      ),
-                      itemBuilder: (_, i) {
-                        final p = products[i];
-                        final img = (p["images"] is List && p["images"].isNotEmpty)
-                            ? p["images"][0]["gambar"]
-                            : null;
+                :
 
-                        return Container(
+                // =================== GRID PRODUK ====================
+                GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.66,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: produk.length,
+                    itemBuilder: (context, index) {
+                      final p = produk[index];
+                      final gambar = (p["images"] is List && p["images"].isNotEmpty)
+                          ? p["images"][0]["url"]
+                          : null;
+
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DetailProductPage(product: p),
+                            ),
+                          );
+                        },
+
+                        child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 8,
                               ),
                             ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // ================= IMAGE =================
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(20)),
-                                child: img != null
+                                    top: Radius.circular(16)),
+                                child: gambar != null
                                     ? Image.network(
-                                        img,
-                                        height: 140,
+                                        gambar,
+                                        height: 130,
                                         width: double.infinity,
                                         fit: BoxFit.cover,
                                       )
                                     : Container(
-                                        height: 140,
-                                        color: Colors.grey[200],
-                                        child: const Icon(Icons.image, size: 50),
+                                        height: 130,
+                                        color: Colors.grey[300],
+                                        child: const Icon(
+                                          Icons.image_not_supported,
+                                          size: 40,
+                                          color: Colors.white,
+                                        ),
                                       ),
                               ),
+
                               Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      p["nama_produk"] ?? "-",
-                                      maxLines: 2,
+                                      p["nama_produk"],
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2D3748),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      "Rp ${p["harga"]}",
-                                      style: const TextStyle(
-                                        color: Color(0xFF667eea),
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                       ),
                                     ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "Rp ${_formatHarga(p["harga"])}",
+                                      style: const TextStyle(
+                                        color: Color(0xFF667eea),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+
+                                    // ================= BUTTON EDIT & DELETE =================
+                                    Row(
+                                      children: [
+                                        // ⭐ EDIT BUTTON
+                                        IconButton(
+                                          icon: const Icon(Icons.edit,
+                                              color: Colors.blue),
+                                          onPressed: () async {
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    EditProductPage(product: p),
+                                              ),
+                                            );
+                                            if (onRefresh != null) onRefresh!();
+                                          },
+                                        ),
+
+                                        // ⭐ DELETE BUTTON
+                                        IconButton(
+                                          icon: const Icon(Icons.delete,
+                                              color: Colors.red),
+                                          onPressed: () {
+                                            _hapusProduk(context, p["id_produk"]);
+                                          },
+                                        ),
+                                      ],
+                                    )
                                   ],
                                 ),
-                              ),
+                              )
                             ],
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
-
-            const SizedBox(height: 30),
           ],
         ),
       ),
+    );
+  }
+
+  // ===================== HAPUS PRODUK ===================== ⭐
+  void _hapusProduk(BuildContext context, int id) async {
+    final confirm = await showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text("Hapus Produk"),
+          content: const Text("Yakin ingin menghapus produk ini?"),
+          actions: [
+            TextButton(
+              child: const Text("Batal"),
+              onPressed: () => Navigator.pop(context, false),
+            ),
+            ElevatedButton(
+              child: const Text("Hapus"),
+              onPressed: () => Navigator.pop(context, true),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) return;
+
+    final res = await ApiService().deleteProduct(id);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(res["message"])),
+    );
+
+    if (res["success"] == true && onRefresh != null) {
+      onRefresh!();
+    }
+  }
+
+  String _formatHarga(dynamic value) {
+    final intVal = int.tryParse(value.toString()) ?? 0;
+    return intVal.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
     );
   }
 }

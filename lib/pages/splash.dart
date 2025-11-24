@@ -68,14 +68,14 @@ class _SplashScreenState extends State<SplashScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
-                  Icon(
-                    Icons.local_mall_rounded,                  
-                    size: 90,
-                    color: Colors.white,
-                  ),
-                  SizedBox(height: 18),
+                //   Icon(
+                //     Icons.local_mall_rounded,                  
+                //     size: 90,
+                //     color: Colors.white,
+                //   ),
+                //   SizedBox(height: 18),
                   Text(
-                    'Sekolah Marketplace',
+                    'School Marketplace',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
