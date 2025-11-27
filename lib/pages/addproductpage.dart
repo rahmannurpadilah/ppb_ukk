@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:apiflutter/pages/mainpage.dart';
-import 'package:apiflutter/pages/mystorepage.dart';
+// import 'package:apiflutter/pages/mystorepage.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
