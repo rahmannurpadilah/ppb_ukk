@@ -45,7 +45,6 @@ class _MyStorePageState extends State<MyStorePage> {
     final tokoRes = await ApiService().getMyToko();
 
     if (tokoRes["success"] != true) {
-      // Token kadaluwarsa
       if (tokoRes["status"] == 401) {
         isLoggedIn = false;
       }
@@ -79,23 +78,21 @@ class _MyStorePageState extends State<MyStorePage> {
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF667eea)),
             )
-
-          // ========== BELUM LOGIN ==========
           : !isLoggedIn
               ? _buildNotLoggedIn()
-
-              // ========== ERROR AMBIL DATA ==========
               : error != null
                   ? _buildErrorState()
-
-                  // ========== BELUM PUNYA TOKO ==========
                   : toko == null
                       ? _buildNoStore()
+                      : StoreDetailPage(
+                          toko!,
+                          produk,
+                          onRefresh: () async {
+                            await _loadStoreData();    // Refresh data
+                            if (mounted) setState(() {});
+                          },
+                        ),
 
-                      // ========== TAMPILKAN TOKO ==========
-                      : StoreDetailPage(toko!, produk),
-
-      // ========== FLOATING BUTTON ==========
       floatingActionButton: (isLoggedIn && toko != null)
           ? FloatingActionButton.extended(
               backgroundColor: const Color(0xFF667eea),
@@ -120,7 +117,7 @@ class _MyStorePageState extends State<MyStorePage> {
     );
   }
 
-  // ========== NOT LOGGED IN STATE ==========
+  // ========================== NOT LOGGED IN ==========================
   Widget _buildNotLoggedIn() {
     return Center(
       child: Padding(
@@ -128,7 +125,6 @@ class _MyStorePageState extends State<MyStorePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
@@ -153,10 +149,7 @@ class _MyStorePageState extends State<MyStorePage> {
                 color: Color(0xFF667eea),
               ),
             ),
-
             const SizedBox(height: 32),
-
-            // Title
             const Text(
               "Login Diperlukan",
               style: TextStyle(
@@ -165,10 +158,7 @@ class _MyStorePageState extends State<MyStorePage> {
                 color: Color(0xFF2D3748),
               ),
             ),
-
             const SizedBox(height: 12),
-
-            // Description
             Text(
               "Silakan login terlebih dahulu untuk mengelola toko dan produk Anda",
               textAlign: TextAlign.center,
@@ -178,10 +168,7 @@ class _MyStorePageState extends State<MyStorePage> {
                 height: 1.6,
               ),
             ),
-
             const SizedBox(height: 40),
-
-            // Login Button
             SizedBox(
               width: 220,
               height: 52,
@@ -203,11 +190,6 @@ class _MyStorePageState extends State<MyStorePage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF667eea),
                   foregroundColor: Colors.white,
-                  elevation: 4,
-                  shadowColor: const Color(0xFF667eea).withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
                 ),
               ),
             ),
@@ -217,7 +199,7 @@ class _MyStorePageState extends State<MyStorePage> {
     );
   }
 
-  // ========== ERROR STATE ==========
+  // ========================== ERROR STATE ==========================
   Widget _buildErrorState() {
     return Center(
       child: Padding(
@@ -225,7 +207,6 @@ class _MyStorePageState extends State<MyStorePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
@@ -238,10 +219,7 @@ class _MyStorePageState extends State<MyStorePage> {
                 color: Colors.red,
               ),
             ),
-
             const SizedBox(height: 24),
-
-            // Title
             const Text(
               "Terjadi Kesalahan",
               style: TextStyle(
@@ -250,10 +228,7 @@ class _MyStorePageState extends State<MyStorePage> {
                 color: Color(0xFF2D3748),
               ),
             ),
-
             const SizedBox(height: 12),
-
-            // Error Message
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -267,33 +242,20 @@ class _MyStorePageState extends State<MyStorePage> {
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.red[700],
-                  height: 1.5,
                 ),
               ),
             ),
-
             const SizedBox(height: 32),
-
-            // Retry Button
             SizedBox(
               width: 200,
               height: 48,
               child: ElevatedButton.icon(
                 onPressed: _loadStoreData,
-                icon: const Icon(Icons.refresh, size: 20),
-                label: const Text(
-                  "Coba Lagi",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                icon: const Icon(Icons.refresh),
+                label: const Text("Coba Lagi"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF667eea),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
               ),
             ),
@@ -303,7 +265,7 @@ class _MyStorePageState extends State<MyStorePage> {
     );
   }
 
-  // ========== NO STORE STATE ==========
+  // ========================== NO STORE ==========================
   Widget _buildNoStore() {
     return Center(
       child: Padding(
@@ -311,7 +273,6 @@ class _MyStorePageState extends State<MyStorePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
@@ -336,10 +297,7 @@ class _MyStorePageState extends State<MyStorePage> {
                 color: Color(0xFF667eea),
               ),
             ),
-
-            const SizedBox(height: 32),
-
-            // Title
+            const SizedBox(height: 24),
             const Text(
               "Belum Punya Toko",
               style: TextStyle(
@@ -348,62 +306,16 @@ class _MyStorePageState extends State<MyStorePage> {
                 color: Color(0xFF2D3748),
               ),
             ),
-
             const SizedBox(height: 12),
-
-            // Description
             Text(
-              "Daftarkan toko Anda sekarang dan mulai berjualan produk kepada pelanggan",
+              "Daftarkan toko Anda sekarang dan mulai berjualan produk",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.grey[600],
-                height: 1.6,
               ),
             ),
-
-            const SizedBox(height: 40),
-
-            // Feature List
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  _buildFeatureItem(
-                    icon: Icons.inventory_2,
-                    title: "Kelola Produk",
-                    description: "Tambah dan kelola produk dengan mudah",
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFeatureItem(
-                    icon: Icons.analytics,
-                    title: "Pantau Penjualan",
-                    description: "Lihat performa toko Anda",
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFeatureItem(
-                    icon: Icons.storefront,
-                    title: "Branding Toko",
-                    description: "Buat identitas toko yang unik",
-                  ),
-                ],
-              ),
-            ),
-
             const SizedBox(height: 32),
-
-            // Daftar Toko Button
             SizedBox(
               width: 240,
               height: 52,
@@ -414,75 +326,20 @@ class _MyStorePageState extends State<MyStorePage> {
                     MaterialPageRoute(builder: (_) => const DaftarTokoPage()),
                   ).then((_) => _loadStoreData());
                 },
-                icon: const Icon(Icons.add_business, size: 22),
+                icon: const Icon(Icons.add_business),
                 label: const Text(
                   "Daftar Toko Sekarang",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF667eea),
                   foregroundColor: Colors.white,
-                  elevation: 4,
-                  shadowColor: const Color(0xFF667eea).withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
                 ),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFeatureItem({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF667eea).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            color: const Color(0xFF667eea),
-            size: 24,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3748),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                description,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

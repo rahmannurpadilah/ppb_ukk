@@ -7,7 +7,7 @@ class StoreDetailPage extends StatelessWidget {
   final Map<String, dynamic> toko;
   final List<Map<String, dynamic>> produk;
 
-  final VoidCallback? onRefresh;   // ⭐ callback agar MyStorePage bisa refresh
+  final VoidCallback? onRefresh; // ⭐ callback refresh
 
   const StoreDetailPage(
     this.toko,
@@ -107,134 +107,134 @@ class StoreDetailPage extends StatelessWidget {
                     ),
                   )
                 :
-
                 // =================== GRID PRODUK ====================
                 GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.66,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemCount: produk.length,
-                    itemBuilder: (context, index) {
-                      final p = produk[index];
-                      final gambar = (p["images"] is List && p["images"].isNotEmpty)
-                          ? p["images"][0]["url"]
-                          : null;
-
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DetailProductPage(product: p),
-                            ),
-                          );
-                        },
-
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // ================= IMAGE =================
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(16)),
-                                child: gambar != null
-                                    ? Image.network(
-                                        gambar,
-                                        height: 130,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Container(
-                                        height: 130,
-                                        color: Colors.grey[300],
-                                        child: const Icon(
-                                          Icons.image_not_supported,
-                                          size: 40,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                              ),
-
-                              Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      p["nama_produk"],
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      "Rp ${_formatHarga(p["harga"])}",
-                                      style: const TextStyle(
-                                        color: Color(0xFF667eea),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-
-                                    // ================= BUTTON EDIT & DELETE =================
-                                    Row(
-                                      children: [
-                                        // ⭐ EDIT BUTTON
-                                        IconButton(
-                                          icon: const Icon(Icons.edit,
-                                              color: Colors.blue),
-                                          onPressed: () async {
-                                            await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) =>
-                                                    EditProductPage(product: p),
-                                              ),
-                                            );
-                                            if (onRefresh != null) onRefresh!();
-                                          },
-                                        ),
-
-                                        // ⭐ DELETE BUTTON
-                                        IconButton(
-                                          icon: const Icon(Icons.delete,
-                                              color: Colors.red),
-                                          onPressed: () {
-                                            _hapusProduk(context, p["id_produk"]);
-                                          },
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.66,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
                   ),
+                  itemCount: produk.length,
+                  itemBuilder: (context, index) {
+                    final p = produk[index];
+                    final gambar = (p["images"] is List && p["images"].isNotEmpty)
+                        ? p["images"][0]["url"]
+                        : null;
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DetailProductPage(product: p),
+                          ),
+                        );
+                      },
+
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // ================= IMAGE =================
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(16)),
+                              child: gambar != null
+                                  ? Image.network(
+                                      gambar,
+                                      height: 130,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Container(
+                                      height: 130,
+                                      color: Colors.grey[300],
+                                      child: const Icon(
+                                        Icons.image_not_supported,
+                                        size: 40,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                            ),
+
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    p["nama_produk"],
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Rp ${_formatHarga(p["harga"])}",
+                                    style: const TextStyle(
+                                      color: Color(0xFF667eea),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  // ================= BUTTON EDIT & DELETE =================
+                                  Row(
+                                    children: [
+                                      // ⭐ EDIT BUTTON
+                                      IconButton(
+                                        icon: const Icon(Icons.edit,
+                                            color: Colors.blue),
+                                        onPressed: () async {
+                                          await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  EditProductPage(product: p),
+                                            ),
+                                          );
+
+                                          if (onRefresh != null) onRefresh!();
+                                        },
+                                      ),
+
+                                      // ⭐ DELETE BUTTON
+                                      IconButton(
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red),
+                                        onPressed: () {
+                                          _hapusProduk(context, p["id_produk"]);
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
           ],
         ),
       ),
@@ -271,11 +271,13 @@ class StoreDetailPage extends StatelessWidget {
       SnackBar(content: Text(res["message"])),
     );
 
+    // ⭐ Auto refresh setelah delete sukses
     if (res["success"] == true && onRefresh != null) {
       onRefresh!();
     }
   }
 
+  // ===================== FORMAT HARGA =====================
   String _formatHarga(dynamic value) {
     final intVal = int.tryParse(value.toString()) ?? 0;
     return intVal.toString().replaceAllMapped(

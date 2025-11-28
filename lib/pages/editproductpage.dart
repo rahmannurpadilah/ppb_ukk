@@ -24,8 +24,8 @@ class _EditProductPageState extends State<EditProductPage> {
 
   String? selectedKategoriId;
 
-  File? imageFile; // ⭐ gambar baru
-  String? oldImageUrl; // ⭐ gambar lama
+  File? imageFile; 
+  String? oldImageUrl; 
 
   bool loading = false;
   String? errorMsg;
@@ -49,7 +49,6 @@ class _EditProductPageState extends State<EditProductPage> {
 
     selectedKategoriId = p["id_kategori"]?.toString();
 
-    // Ambil gambar pertama jika ada
     if (p["images"] is List && p["images"].isNotEmpty) {
       oldImageUrl = p["images"][0]["url"];
     }
@@ -83,8 +82,16 @@ class _EditProductPageState extends State<EditProductPage> {
     setState(() => imageFile = File(picked.path));
   }
 
+  // ==================== SUBMIT PERBAIKAN ====================
   Future<void> submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (selectedKategoriId == null) {
+      setState(() {
+        errorMsg = "Kategori harus dipilih.";
+      });
+      return;
+    }
 
     setState(() {
       loading = true;
@@ -92,10 +99,9 @@ class _EditProductPageState extends State<EditProductPage> {
     });
 
     final p = widget.product;
+    final api = ApiService();
 
     try {
-      final api = ApiService();
-
       final res = await api.updateProduct(
         idProduk: p["id_produk"],
         idKategori: int.parse(selectedKategoriId!),
@@ -106,24 +112,25 @@ class _EditProductPageState extends State<EditProductPage> {
       );
 
       if (res["success"] != true) {
-        errorMsg = res["message"];
-      } else {
-        // jika user pilih gambar baru
-        if (imageFile != null) {
-          await api.uploadProductImage(
-            idProduk: p["id_produk"],
-            imageFile: imageFile!,
-          );
-        }
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Perubahan disimpan")),
-          );
-        }
+        setState(() {
+          loading = false;
+          errorMsg = res["message"];
+        });
+        return;
       }
-    } finally {
+
+      if (imageFile != null) {
+        await api.uploadProductImage(
+          idProduk: p["id_produk"],
+          imageFile: imageFile!,
+        );
+      }
+
       if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Perubahan disimpan")),
+      );
 
       Navigator.pushAndRemoveUntil(
         context,
@@ -131,7 +138,11 @@ class _EditProductPageState extends State<EditProductPage> {
         (route) => false,
       );
 
-      loading = false;
+    } catch (e) {
+      setState(() {
+        loading = false;
+        errorMsg = "Error: $e";
+      });
     }
   }
 
@@ -305,6 +316,7 @@ class _EditProductPageState extends State<EditProductPage> {
                   // ================= KATEGORI =================
                   DropdownButtonFormField<String>(
                     value: selectedKategoriId,
+                    validator: (v) => v == null ? "Pilih kategori" : null,
                     decoration: InputDecoration(
                       labelText: "Kategori",
                       prefixIcon: const Icon(Icons.category_outlined),
